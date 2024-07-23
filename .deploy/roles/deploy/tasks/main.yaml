@@ -1,0 +1,51 @@
+---
+- include_tasks: install_ingress_controller.yaml
+  tags: ["ingress-controller"]
+
+- include_tasks: install_storage.yaml
+  tags: ["storage"]
+
+- name: deploy prow
+  tags: ["prow"]
+  block:
+    - name: check args
+      block:
+        - name: check if github_appid is set
+          assert:
+            that: github_appid != ""
+            msg: "github appid should set"
+        - name: check if github_token is set
+          assert:
+            that: github_cert != ""
+            msg: "github private key should set"
+        - name: check if github_token is set
+          assert:
+            that: github_token != ""
+            msg: "github generic token should set"
+    - name: sync prowjob crd file to remote
+      template:
+        src: prowjob.yaml
+        dest: prowjob.yaml
+    - name: apply prowjob crd file
+      command: |
+        if ! kubectl get crd prowjobs.prow.k8s.io; then
+          kubectl create -f prowjob.yaml
+        fi
+    - name: sync prow deploy file to remote
+      template:
+        src: prow.yaml
+        dest: prow.yaml
+    - name: apply prow deploy file
+      command: |
+        kubectl apply -f prow.yaml
+
+- name: deploy external plugins
+  tags: ["external-plugins"]
+  block:
+    - name: sync external plugins file to remote
+      template:
+        src: external-plugins
+        dest: plugins/
+    - name: deploy external plugins file
+      command: |
+        kubectl apply -f plugins/

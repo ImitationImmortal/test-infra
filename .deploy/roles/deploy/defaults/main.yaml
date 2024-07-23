@@ -1,0 +1,25 @@
+global_registry: ""
+global_tag: "v20240711-e49eac682"
+gcrio_registry: "{% if (global_registry != '') %}{{ global_registry }}{% else %}gcr.io{% endif %}"
+
+namespace: prow
+prow_host: ci-bot.kubesphere.io
+hmac_token: "{{ hmac_token|rand:20 }}"
+storage:
+  minio:
+    root_user: root
+    root_password: abcd@1234
+  qingcloud:
+    region: pek3b
+    endpoint: "s3.pek3b.qingstor.com"
+    access_key: ""
+    secret_key: ""
+# github app
+github_appid: ""
+# the private key for github app
+github_cert: ""
+# the generic token for account
+github_token: ""
+cert_manager:
+  staging_email: blacktiledhouse@gmail.com
+  prod_email: blacktiledhouse@gmail.com

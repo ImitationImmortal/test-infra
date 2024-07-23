@@ -1,0 +1,34 @@
+---
+- name: install ingress controller
+  block:
+    - name: sync ingress helm package to cluster
+      copy:
+        src: ingress-nginx-4.11.1.tgz
+        dest: ingress-nginx-4.11.1.tgz
+    - name: install ingress helm package
+      command: |
+        helm upgrade --install ingress-nginx ingress-nginx-4.11.1.tgz \
+          --namespace ingress-nginx --create-namespace
+
+- name: install cert-manager
+  block:
+    - name: sync ingress helm package to cluster
+      copy:
+        src: cert-manager-v1.12.2.tgz
+        dest: cert-manager-v1.12.2.tgz
+    - name: install ingress helm package
+      command: |
+        helm upgrade --install cert-manager cert-manager-v1.12.2.tgz \
+        --namespace cert-manager --create-namespace \
+        --version v1.15.1 --set crds.enabled=true
+
+- name: install issuer
+  block:
+    - name: sync issuer to cluster
+      template:
+        src: ingress-controller/issuer.yaml
+        dest: ingress-controller/issuer.yaml
+    - name: apply issuer
+      command: |
+        kubectl apply -f ingress-controller/issuer.yaml
+    
