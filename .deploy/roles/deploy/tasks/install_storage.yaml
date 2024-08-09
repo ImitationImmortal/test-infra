@@ -11,16 +11,26 @@
         kubectl apply -f prow-storage-minio.yaml
 
 - name: deploy qingcloud storage
-  tags: ["qingcloud"]
+  tags: ["qingstor"]
   block:
     - name: check qingcloud args
       block:
+        - name: check if qingcloud region is set
+          assert:
+            that: .storage.qingcloud.region | ne ""
+            msg: "qingcloud region should set"
+        - name: check if qingcloud endpoint is set
+          assert:
+            that: .storage.qingcloud.endpoint | ne ""
+            msg: "qingcloud endpoint should set"
         - name: check if qingcloud access_key is set
-          assert: storage.qingcloud.access_key != ""
-          msg: "qingcloud access_key should set"
+          assert:
+            that: .storage.qingcloud.access_key | ne ""
+            msg: "qingcloud access_key should set"
         - name: check if qingcloud secret_key is set
-          assert: storage.qingcloud.secret_key != ""
-          msg: "qingcloud secret_key should set"
+          assert:
+            that: .storage.qingcloud.secret_key | ne ""
+            msg: "qingcloud secret_key should set"
     - name: sync qingcloud to remote
       template:
         src: storage/qingcloud.yaml

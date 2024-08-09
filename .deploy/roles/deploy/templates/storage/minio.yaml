@@ -2,23 +2,23 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: "{{ namespace }}"
+  name: "{{ .namespace }}"
 
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: s3-credentials
 stringData:
   service-account.json: |
     {
       "region": "minio",
-      "access_key": "{{ storage.minio.root_user }}",
+      "access_key": "{{ .storage.minio.root_user }}",
       "endpoint": "minio.prow-minio.svc.cluster.local",
-      "insecure": true,
-      "s3_force_path_style": true,
-      "secret_key": "{{ storage.minio.root_password }}"
+      "insecure": {{ .storage.insecure }},
+      "s3_force_path_style": {{ .storage.s3_force_path_style }},
+      "secret_key": "{{ .storage.minio.root_password }}"
     }
 
 ---
@@ -33,8 +33,8 @@ metadata:
   namespace: prow-minio
   name: minio-root-creds
 stringData:
-  user: "{{ storage.minio.root_user }}"
-  password: "{{ storage.minio.root_password }}"
+  user: "{{ .storage.minio.root_user }}"
+  password: "{{ .storage.minio.root_password }}"
 
 ---
 apiVersion: v1
@@ -47,7 +47,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 10Gi
+      storage: 100Gi
 
 ---
 apiVersion: apps/v1

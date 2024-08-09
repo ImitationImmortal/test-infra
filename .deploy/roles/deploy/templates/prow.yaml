@@ -5,12 +5,12 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: "{{ namespace }}"
+  name: "{{ .namespace }}"
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: plugins
 data:
   plugins.yaml: |
@@ -27,43 +27,43 @@ data:
 apiVersion: v1
 kind: Secret
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: github-token
 stringData:
-  cert: {{ github_cert|to_yaml }}
-  appid: "{{ github_appid }}"
+  cert: {{ .github_cert | toYaml }}
+  appid: "{{ .github_appid }}"
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: github-oauth-token
 stringData:
-  token: "{{ github_token }}"
+  token: "{{ .github_token }}"
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: hmac-token
 stringData:
   # Generate via `openssl rand -hex 20`. This is the secret used in the GitHub webhook configuration
-  hmac: "{{ hmac_token }}"
+  hmac: "{{ .hmac_token }}"
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: config
 data:
   config.yaml: |
-    prowjob_namespace: "{{ namespace }}"
-    pod_namespace: "{{ namespace }}-pods"
+    prowjob_namespace: "{{ .namespace }}"
+    pod_namespace: "{{ .namespace }}-pods"
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: hook
   labels:
     app: hook
@@ -86,14 +86,14 @@ spec:
       terminationGracePeriodSeconds: 180
       containers:
         - name: hook
-          image: "{{ gcrio_registry }}/k8s-prow/hook:{{ global_tag }}"
+          image: "{{ .gcrio_registry }}/k8s-prow/hook:{{ .global_tag }}"
           imagePullPolicy: Always
           args:
             - --dry-run=false
             - --config-path=/etc/config/config.yaml
             - --github-endpoint=http://ghproxy
             - --github-endpoint=https://api.github.com
-            - --github-app-id={{ github_appid }}
+            - --github-app-id={{ .github_appid }}
             - --github-app-private-key-path=/etc/github/cert
           env:
             - name: GITHUB_APP_ID
@@ -147,7 +147,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: hook
 spec:
   selector:
@@ -158,7 +158,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: sinker
   labels:
     app: sinker
@@ -175,7 +175,7 @@ spec:
       serviceAccountName: "sinker"
       containers:
         - name: sinker
-          image: "{{ gcrio_registry }}/k8s-prow/sinker:{{ global_tag }}"
+          image: "{{ .gcrio_registry }}/k8s-prow/sinker:{{ .global_tag }}"
           args:
             - --config-path=/etc/config/config.yaml
             - --dry-run=false
@@ -191,7 +191,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: deck
   labels:
     app: deck
@@ -214,7 +214,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: deck
-          image: "{{ gcrio_registry }}/k8s-prow/deck:{{ global_tag }}"
+          image: "{{ .gcrio_registry }}/k8s-prow/deck:{{ .global_tag }}"
           args:
             - --config-path=/etc/config/config.yaml
             - --plugin-config=/etc/plugins/plugins.yaml
@@ -225,7 +225,7 @@ spec:
             - --github-graphql-endpoint=http://ghproxy/graphql
             - --s3-credentials-file=/etc/s3-credentials/service-account.json
             - --spyglass=true
-            - --github-app-id={{ github_appid }}
+            - --github-app-id={{ .github_appid }}
             - --github-app-private-key-path=/etc/github/cert
           env:
             - name: GITHUB_APP_ID
@@ -279,7 +279,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: deck
 spec:
   selector:
@@ -291,7 +291,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: horologium
   labels:
     app: horologium
@@ -311,7 +311,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: horologium
-          image: "{{ gcrio_registry }}/k8s-prow/horologium:{{ global_tag }}"
+          image: "{{ .gcrio_registry }}/k8s-prow/horologium:{{ .global_tag }}"
           args:
             - --dry-run=false
             - --config-path=/etc/config/config.yaml
@@ -327,7 +327,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: tide
   labels:
     app: tide
@@ -346,7 +346,7 @@ spec:
       serviceAccountName: "tide"
       containers:
         - name: tide
-          image: "{{ gcrio_registry }}/k8s-prow/tide:{{ global_tag }}"
+          image: "{{ .gcrio_registry }}/k8s-prow/tide:{{ .global_tag }}"
           args:
             - --dry-run=false
             - --config-path=/etc/config/config.yaml
@@ -356,7 +356,7 @@ spec:
             - --s3-credentials-file=/etc/s3-credentials/service-account.json
             - --status-path=s3://tide/tide-status
             - --history-uri=s3://tide/tide-history.json
-            - --github-app-id={{ github_appid }}
+            - --github-app-id={{ .github_appid }}
             - --github-app-private-key-path=/etc/github/cert
           env:
             - name: GITHUB_APP_ID
@@ -391,7 +391,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: tide
 spec:
   selector:
@@ -403,18 +403,18 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: prow
   annotations:
     # Change this to your issuer when using cert-manager. Does
     # nothing when not using cert-manager.
-    cert-manager.io/cluster-issuer: letsencrypt-staging
+    cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
-  ingressClassName: nginx
+  ingressClassName: {{ .cert_manager.ingress_class_name }}
   tls:
     - hosts:
-        - "{{ prow_host }}"
-      secretName: "{{ prow_host }}-tls"
+        - "{{ .prow_host }}"
+      secretName: "{{ .prow_host }}-tls"
   defaultBackend:
     # specify the default backend for `ingress-gce` (https://cloud.google.com/kubernetes-engine/docs/concepts/ingress#default_backend)
     service:
@@ -422,7 +422,7 @@ spec:
       port:
         number: 80
   rules:
-    - host: "{{ prow_host }}"
+    - host: "{{ .prow_host }}"
       http:
         paths:
           - path: /
@@ -444,7 +444,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: statusreconciler
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   labels:
     app: statusreconciler
 spec:
@@ -461,7 +461,7 @@ spec:
       terminationGracePeriodSeconds: 180
       containers:
         - name: statusreconciler
-          image: "{{ gcrio_registry }}/k8s-prow/status-reconciler:{{ global_tag }}"
+          image: "{{ .gcrio_registry }}/k8s-prow/status-reconciler:{{ .global_tag }}"
           args:
             - --dry-run=false
             - --continue-on-error=true
@@ -471,7 +471,7 @@ spec:
             - --github-endpoint=https://api.github.com
             - --s3-credentials-file=/etc/s3-credentials/service-account.json
             - --status-path=s3://status-reconciler/status-reconciler-status
-            - --github-app-id={{ github_appid }}
+            - --github-app-id={{ .github_appid }}
             - --github-app-private-key-path=/etc/github/cert
           env:
             - name: GITHUB_APP_ID
@@ -509,18 +509,18 @@ spec:
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: "{{ namespace }}-pods"
+  name: "{{ .namespace }}-pods"
 ---
 kind: ServiceAccount
 apiVersion: v1
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: "deck"
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: "deck"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -533,7 +533,7 @@ subjects:
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  namespace: "{{ namespace }}-pods"
+  namespace: "{{ .namespace }}-pods"
   name: "deck"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -542,12 +542,12 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: "deck"
-    namespace: "{{ namespace }}"
+    namespace: "{{ .namespace }}"
 ---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: "deck"
 rules:
   - apiGroups:
@@ -566,7 +566,7 @@ rules:
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  namespace: "{{ namespace }}-pods"
+  namespace: "{{ .namespace }}-pods"
   name: "deck"
 rules:
   - apiGroups:
@@ -579,13 +579,13 @@ rules:
 kind: ServiceAccount
 apiVersion: v1
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: "horologium"
 ---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: "horologium"
 rules:
   - apiGroups:
@@ -600,7 +600,7 @@ rules:
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: "horologium"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -613,13 +613,13 @@ subjects:
 kind: ServiceAccount
 apiVersion: v1
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: "sinker"
 ---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: "sinker"
 rules:
   - apiGroups:
@@ -666,7 +666,7 @@ rules:
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  namespace: "{{ namespace }}-pods"
+  namespace: "{{ .namespace }}-pods"
   name: "sinker"
 rules:
   - apiGroups:
@@ -683,7 +683,7 @@ rules:
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: "sinker"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -696,7 +696,7 @@ subjects:
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  namespace: "{{ namespace }}-pods"
+  namespace: "{{ .namespace }}-pods"
   name: "sinker"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -705,18 +705,18 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: "sinker"
-    namespace: "{{ namespace }}"
+    namespace: "{{ .namespace }}"
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: "hook"
 ---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: "hook"
 rules:
   - apiGroups:
@@ -740,7 +740,7 @@ rules:
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: "hook"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -753,13 +753,13 @@ subjects:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: "tide"
 ---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: "tide"
 rules:
   - apiGroups:
@@ -775,7 +775,7 @@ rules:
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: "tide"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -788,13 +788,13 @@ subjects:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: "statusreconciler"
 ---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: "statusreconciler"
 rules:
   - apiGroups:
@@ -807,7 +807,7 @@ rules:
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: "statusreconciler"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -820,7 +820,7 @@ subjects:
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   labels:
     app: ghproxy
   name: ghproxy
@@ -834,7 +834,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: ghproxy
   labels:
     app: ghproxy
@@ -853,7 +853,7 @@ spec:
     spec:
       containers:
         - name: ghproxy
-          image: "{{ gcrio_registry }}/k8s-prow/ghproxy:{{ global_tag }}"
+          image: "{{ .gcrio_registry }}/k8s-prow/ghproxy:{{ .global_tag }}"
           args:
             - --cache-dir=/cache
             - --cache-sizeGB=99
@@ -874,7 +874,7 @@ kind: Service
 metadata:
   labels:
     app: ghproxy
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: ghproxy
 spec:
   ports:
@@ -891,7 +891,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: prow-controller-manager
   labels:
     app: prow-controller-manager
@@ -914,7 +914,7 @@ spec:
             - --github-endpoint=http://ghproxy
             - --github-endpoint=https://api.github.com
             - --enable-controller=plank
-            - --github-app-id={{ github_appid }}
+            - --github-app-id={{ .github_appid }}
             - --github-app-private-key-path=/etc/github/cert
           env:
             - name: GITHUB_APP_ID
@@ -922,7 +922,7 @@ spec:
                 secretKeyRef:
                   name: github-token
                   key: appid
-          image: "{{ gcrio_registry }}/k8s-prow/prow-controller-manager:{{ global_tag }}"
+          image: "{{ .gcrio_registry }}/k8s-prow/prow-controller-manager:{{ .global_tag }}"
           volumeMounts:
             - name: github-token
               mountPath: /etc/github
@@ -941,13 +941,13 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: prow-controller-manager
 ---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: prow-controller-manager
 rules:
   - apiGroups:
@@ -995,7 +995,7 @@ rules:
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  namespace: "{{ namespace }}-pods"
+  namespace: "{{ .namespace }}-pods"
   name: prow-controller-manager
 rules:
   - apiGroups:
@@ -1013,7 +1013,7 @@ rules:
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: prow-controller-manager
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -1026,7 +1026,7 @@ subjects:
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  namespace: "{{ namespace }}-pods"
+  namespace: "{{ .namespace }}-pods"
   name: prow-controller-manager
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -1035,12 +1035,12 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: prow-controller-manager
-    namespace: "{{ namespace }}"
+    namespace: "{{ .namespace }}"
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: crier
   labels:
     app: crier
@@ -1058,7 +1058,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: crier
-          image: "{{ gcrio_registry }}/k8s-prow/crier:{{ global_tag }}"
+          image: "{{ .gcrio_registry }}/k8s-prow/crier:{{ .global_tag }}"
           args:
             - --blob-storage-workers=10
             - --config-path=/etc/config/config.yaml
@@ -1067,7 +1067,7 @@ spec:
             - --github-endpoint=https://api.github.com
             - --github-workers=10
             - --kubernetes-blob-storage-workers=10
-            - --github-app-id={{ github_appid }}
+            - --github-app-id={{ .github_appid }}
             - --github-app-private-key-path=/etc/github/cert
           env:
             - name: GITHUB_APP_ID
@@ -1100,12 +1100,12 @@ kind: ServiceAccount
 apiVersion: v1
 metadata:
   name: crier
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
 ---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: crier
 rules:
   - apiGroups:
@@ -1121,7 +1121,7 @@ rules:
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  namespace: "{{ namespace }}-pods"
+  namespace: "{{ .namespace }}-pods"
   name: crier
 rules:
   - apiGroups:
@@ -1143,7 +1143,7 @@ kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: crier
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -1151,13 +1151,13 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: crier
-    namespace: "{{ namespace }}"
+    namespace: "{{ .namespace }}"
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: crier
-  namespace: "{{ namespace }}-pods"
+  namespace: "{{ .namespace }}-pods"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -1165,5 +1165,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: crier
-    namespace: "{{ namespace }}"
-
+    namespace: "{{ .namespace }}"

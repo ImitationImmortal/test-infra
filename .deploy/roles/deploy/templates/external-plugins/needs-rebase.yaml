@@ -15,7 +15,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: needs-rebase
   labels:
     app: needs-rebase
@@ -32,7 +32,7 @@ spec:
       terminationGracePeriodSeconds: 180
       containers:
         - name: needs-rebase
-          image: "{{ gcrio_registry }}/k8s-prow/needs-rebase:{{ global_tag }}"
+          image: "{{ .gcrio_registry }}/k8s-prow/needs-rebase:{{ .global_tag }}"
           imagePullPolicy: Always
           args:
             - --dry-run=false
@@ -68,7 +68,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: needs-rebase
 spec:
   selector:

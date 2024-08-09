@@ -15,7 +15,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: cherrypicker
   labels:
     app: cherrypicker
@@ -38,7 +38,7 @@ spec:
       terminationGracePeriodSeconds: 180
       containers:
         - name: cherrypicker
-          image: "{{ gcrio_registry }}/k8s-prow/cherrypicker:{{ global_tag }}"
+          image: "{{ .gcrio_registry }}/k8s-prow/cherrypicker:{{ .global_tag }}"
           imagePullPolicy: Always
           args:
             - --github-token-path=/etc/github/token
@@ -71,7 +71,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: "{{ namespace }}"
+  namespace: "{{ .namespace }}"
   name: cherrypicker
 spec:
   selector:

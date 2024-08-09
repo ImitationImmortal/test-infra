@@ -15,7 +15,7 @@ export PATH := $(abspath $(OUTPUT_BIN_DIR)):$(abspath $(OUTPUT_TOOLS_DIR)):$(PAT
 # Binaries.
 #
 # Note: Need to use abspath so we can invoke these from subdirectories
-KK_VER := v4.0.0-alpha.1
+KK_VER := v4.0.0-alpha.2
 KK_BIN := kk
 KK_GEN := $(abspath $(OUTPUT_TOOLS_DIR)/$(KK_BIN))
 KK_PKG := github.com/kubesphere/kubekey/v4/cmd/kk
@@ -24,10 +24,13 @@ KK_PKG := github.com/kubesphere/kubekey/v4/cmd/kk
 # Deploy.
 #
 # Note: Deploy prow in cluster
-DEPLOY_SKIP_TAGS ?= qingcloud
+DEPLOY_INVENTORY ?= .deploy/inventory/inventory.yaml
+DEPLOY_SKIP_TAGS ?= qingstor ingress-controller
 DEPLOY_WORK_DIR ?= $(OUTPUT_DIR)
 deploy_tag_command := $(foreach t,$(DEPLOY_TAGS),--tags $(t) )
 deploy_skip_tag_command := $(foreach t,$(DEPLOY_SKIP_TAGS),--skip-tags $(t) )
+QINGSTOR_REGION ?= pek3b
+QINGSTOR_ENDPOINT ?= s3.pek3b.qingstor.com
 
 
 .PHONY: help
@@ -48,8 +51,9 @@ $(KK_BIN): ## Build kubekey from tools folder.
 
 
 .PHONY: deploy
-#deploy: $(KK_BIN) ## deploy prow in a cluster
-deploy: ## deploy prow in a cluster
-	@$(OUTPUT_TOOLS_DIR)/$(KK_BIN) run .deploy/playbooks/deploy.yaml --inventory .deploy/inventory/inventory.yaml --work-dir $(DEPLOY_WORK_DIR) \
+deploy: $(KK_BIN) ## deploy prow in a cluster
+	$(OUTPUT_TOOLS_DIR)/$(KK_BIN) run .deploy/playbooks/deploy.yaml --inventory $(DEPLOY_INVENTORY) --work-dir $(DEPLOY_WORK_DIR) \
 		$(deploy_tag_command) $(deploy_skip_tag_command) \
-		--set github_appid="$(GITHUB_APPID)" --set github_token="$(GITHUB_TOKEN)" --set github_cert="$(GITHUB_CERT)"
+		--set cert_manager.ingress_class_name="$(DEPLOY_INGRESS_CLASS)" \
+		--set storage.qingcloud.region="$(QINGSTOR_REGION)" --set storage.qingcloud.endpoint="$(QINGSTOR_ENDPOINT)" --set storage.qingcloud.access_key="$(QINGSTOR_ACCESS_KEY)" --set storage.qingcloud.secret_key="$(QINGSTOR_SECRET_KEY)" \
+		--set github_appid="$(GITHUB_APPID)" --set github_token="$(GITHUB_TOKEN)" --set github_cert="$(GITHUB_CERT)" \

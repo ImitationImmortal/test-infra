@@ -19,16 +19,5 @@
     - name: install ingress helm package
       command: |
         helm upgrade --install cert-manager cert-manager-v1.12.2.tgz \
-        --namespace cert-manager --create-namespace \
-        --version v1.15.1 --set crds.enabled=true
-
-- name: install issuer
-  block:
-    - name: sync issuer to cluster
-      template:
-        src: ingress-controller/issuer.yaml
-        dest: ingress-controller/issuer.yaml
-    - name: apply issuer
-      command: |
-        kubectl apply -f ingress-controller/issuer.yaml
-    
+         --namespace cert-manager --create-namespace \
+         --version v1.15.1 --set crds.enabled=true

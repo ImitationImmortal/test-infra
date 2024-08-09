@@ -1,6 +1,16 @@
 ---
 - include_tasks: install_ingress_controller.yaml
   tags: ["ingress-controller"]
+- name: install issuer
+  block:
+    - name: sync issuer to cluster
+      template:
+        src: issuer/issuer.yaml
+        dest: issuer/issuer.yaml
+    - name: apply issuer
+      command: |
+        kubectl apply -f issuer/issuer.yaml
+
 
 - include_tasks: install_storage.yaml
   tags: ["storage"]
@@ -12,15 +22,15 @@
       block:
         - name: check if github_appid is set
           assert:
-            that: github_appid != ""
+            that: .github_appid | ne ""
             msg: "github appid should set"
         - name: check if github_token is set
           assert:
-            that: github_cert != ""
+            that: .github_cert | ne ""
             msg: "github private key should set"
         - name: check if github_token is set
           assert:
-            that: github_token != ""
+            that: .github_token | ne ""
             msg: "github generic token should set"
     - name: sync prowjob crd file to remote
       template:
@@ -28,9 +38,10 @@
         dest: prowjob.yaml
     - name: apply prowjob crd file
       command: |
-        if ! kubectl get crd prowjobs.prow.k8s.io; then
-          kubectl create -f prowjob.yaml
+        if kubectl get crd prowjobs.prow.k8s.io; then
+          kubectl delete crd prowjobs.prow.k8s.io
         fi
+        kubectl create -f prowjob.yaml
     - name: sync prow deploy file to remote
       template:
         src: prow.yaml

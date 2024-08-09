@@ -59,6 +59,7 @@ github_reporter:
   job_types_to_report:
   - presubmit
   - postsubmit
+#  - periodic
 
 tide:
   blocker_label: tide/merge-blocker
