@@ -1,14 +1,14 @@
-prowjob_namespace: prow
-pod_namespace: prow-pods
+prowjob_namespace: "default"
+pod_namespace: test-pods
 log_level: debug
 
 plank:
   job_url_prefix_config:
-    "*": https://ci-bot.kubesphere.io/view/
+    "*": https://prow.kubesphere.io/view/
   report_templates:
     '*': >-
-        [Full PR test history](https://ci-bot.kubesphere.io/pr-history?org={{.Spec.Refs.Org}}&repo={{.Spec.Refs.Repo}}&pr={{with index .Spec.Refs.Pulls 0}}{{.Number}}{{end}}).
-        [Your PR dashboard](https://ci-bot.kubesphere.io/pr?query=is:pr+state:open+author:{{with index .Spec.Refs.Pulls 0}}{{.Author}}{{end}}).
+        [Full PR test history](https://prow.kubesphere.io/pr-history?org={{.Spec.Refs.Org}}&repo={{.Spec.Refs.Repo}}&pr={{with index .Spec.Refs.Pulls 0}}{{.Number}}{{end}}).
+        [Your PR dashboard](https://prow.kubesphere.io/pr?query=is:pr+state:open+author:{{with index .Spec.Refs.Pulls 0}}{{.Author}}{{end}}).
   default_decoration_configs:
     "*":
       gcs_configuration:
@@ -16,10 +16,10 @@ plank:
         path_strategy: explicit
       s3_credentials_secret: s3-credentials
       utility_images:
-        clonerefs: gcr.io/k8s-prow/clonerefs:v20240627-79d27b6e3
-        entrypoint: gcr.io/k8s-prow/entrypoint:v20240627-79d27b6e3
-        initupload: gcr.io/k8s-prow/initupload:v20240627-79d27b6e3
-        sidecar: gcr.io/k8s-prow/sidecar:v20240627-79d27b6e3
+        clonerefs: gcr.io/k8s-prow/clonerefs:v20210526-84965e233e
+        entrypoint: gcr.io/k8s-prow/entrypoint:v20210526-84965e233e
+        initupload: gcr.io/k8s-prow/initupload:v20210526-84965e233e
+        sidecar: gcr.io/k8s-prow/sidecar:v20210526-84965e233e
 
 deck:
   spyglass:
@@ -42,114 +42,101 @@ deck:
       required_files:
       - podinfo.json
 
-#slack_reporter_configs:
-#  '*':
-#    job_types_to_report:
-#    - postsubmit
-#    - presubmit
-#    - periodic
-#    - batch
-#    job_states_to_report:
-#    - failure
-#    - error
-#    channel: prow
-#    report_template: 'Job *{{.Spec.Job}}* of type *{{.Spec.Type}}* ended with state *{{.Status.State}}*. <{{.Status.URL}}|View logs>'
+slack_reporter_configs:
+  '*':
+    job_types_to_report:
+    - postsubmit
+    - presubmit
+    - periodic
+    - batch
+    job_states_to_report:
+    - failure
+    - error
+    channel: prow
+    report_template: 'Job *{{.Spec.Job}}* of type *{{.Spec.Type}}* ended with state *{{.Status.State}}*. <{{.Status.URL}}|View logs>'
 
 github_reporter:
   job_types_to_report:
   - presubmit
   - postsubmit
-#  - periodic
 
 tide:
   blocker_label: tide/merge-blocker
   squash_label: tide/merge-method-squash
   rebase_label: tide/merge-method-rebase
   merge_label: tide/merge-method-merge
-#  merge_method:
-#    ImitationImmortal/test-prow: squash
-#    kubesphere/kubesphere: squash
-#    kubesphere/console: squash
-#    kubesphere/s2ioperator: squash
-#    kubesphere/s2irun: squash
-#    kubesphere/community: squash
-#    kubesphere/ks-jenkins: squash
-#    kubesphere/ks-devops: squash
-#    kubesphere/dev-guide: squash
-#    kubesphere/prow-tutorial: squash
-#  target_url: https://ci-bot.kubesphere.io
-#  queries:
-#    - repos:
-#        - ImitationImmortal/test-prow
-#      labels:
-#        - lgtm
-#        - approved
-#      missingLabels:
-#        - do-not-merge
-#        - do-not-merge/contains-merge-commits
-#        - do-not-merge/hold
-#        - do-not-merge/invalid-commit-message
-#        - do-not-merge/invalid-owners-file
-#        - do-not-merge/work-in-progress
-#        - needs-rebase
-#  - orgs:
-#    - openelb
-#    labels:
-#    - lgtm
-#    - approved
-#    missingLabels:
-#    - do-not-merge
-#    - do-not-merge/contains-merge-commits
-#    - do-not-merge/hold
-#    - do-not-merge/invalid-commit-message
-#    - do-not-merge/invalid-owners-file
-#    - do-not-merge/work-in-progress
-#    - needs-rebase
-#  - orgs:
-#    - kubesphere-sigs
-#    labels:
-#    - lgtm
-#    - approved
-#    missingLabels:
-#    - do-not-merge
-#    - do-not-merge/hold
-#    - do-not-merge/work-in-progress
-#    - do-not-merge/invalid-owners-file
-#  - repos:
-#    - kubesphere/kubesphere
-#    - kubesphere/console
-#    - kubesphere/ks-installer
-#    - kubesphere/community
-#    - kubesphere/kubekey
-#    - kubesphere/kubeeye
-#    - kubesphere/ks-devops
-#    - kubesphere/helm-charts
-#    - kubesphere/website
-#    - kubesphere/extension-samples
-#    - kubesphere/test-infra
-#    - kubesphere/ksbuilder
-#    - kubesphere/ks-jenkins
-#    - kubesphere/devops-agent
-#    - kubesphere/kube-design
-#    - kubesphere/ks-prometheus
-#    - kubesphere/tower
-#    - kubesphere/notification-manager
-#    - kubesphere/cluster-api-provider-qingcloud
-#    - kubesphere/kubesphere-security-pack
-#    - kubesphere/image-sync-config
-#    - kubesphere/dev-guide
-#    labels:
-#    - lgtm
-#    - approved
-#    missingLabels:
-#    - do-not-merge
-#    - do-not-merge/contains-merge-commits
-#    - do-not-merge/hold
-#    - do-not-merge/invalid-commit-message
-#    - do-not-merge/invalid-owners-file
-#    - do-not-merge/release-note-label-needed
-#    - do-not-merge/work-in-progress
-#    - needs-rebase
+  merge_method:
+    kubesphere/kubesphere: squash
+    kubesphere/console: squash
+    kubesphere/s2ioperator: squash
+    kubesphere/s2irun: squash
+    kubesphere/community: squash
+    kubesphere/ks-jenkins: squash
+    kubesphere/ks-devops: squash
+    kubesphere/dev-guide: squash
+    kubesphere/prow-tutorial: squash
+    kubesphere/kubekey: squash
+  target_url: https://prow.kubesphere.io
+  queries:
+  - orgs:
+    - openelb
+    labels:
+    - lgtm
+    - approved
+    missingLabels:
+    - do-not-merge
+    - do-not-merge/contains-merge-commits
+    - do-not-merge/hold
+    - do-not-merge/invalid-commit-message
+    - do-not-merge/invalid-owners-file
+    - do-not-merge/work-in-progress
+    - needs-rebase
+  - orgs:
+    - kubesphere-sigs
+    labels:
+    - lgtm
+    - approved
+    missingLabels:
+    - do-not-merge
+    - do-not-merge/hold
+    - do-not-merge/work-in-progress
+    - do-not-merge/invalid-owners-file
+  - repos:
+    - kubesphere/kubesphere
+    - kubesphere/console
+    - kubesphere/ks-installer
+    - kubesphere/community
+    - kubesphere/kubekey
+    - kubesphere/kubeeye
+    - kubesphere/ks-devops
+    - kubesphere/helm-charts
+    - kubesphere/website
+    - kubesphere/extension-samples
+    - kubesphere/test-infra
+    - kubesphere/ksbuilder
+    - kubesphere/ks-jenkins
+    - kubesphere/devops-agent
+    - kubesphere/kube-design
+    - kubesphere/ks-prometheus
+    - kubesphere/tower
+    - kubesphere/notification-manager
+    - kubesphere/cluster-api-provider-qingcloud
+    - kubesphere/kubesphere-security-pack
+    - kubesphere/image-sync-config
+    - kubesphere/dev-guide
+    = kubesphere/kubectl
+    labels:
+    - lgtm
+    - approved
+    missingLabels:
+    - do-not-merge
+    - do-not-merge/contains-merge-commits
+    - do-not-merge/hold
+    - do-not-merge/invalid-commit-message
+    - do-not-merge/invalid-owners-file
+    - do-not-merge/release-note-label-needed
+    - do-not-merge/work-in-progress
+    - needs-rebase
 
 decorate_all_jobs: true
 
