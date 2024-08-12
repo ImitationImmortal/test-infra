@@ -1,0 +1,33 @@
+global_registry: ""
+global_tag: "v20240711-e49eac682"
+gcrio_registry: |
+  {{- if .global_registry | ne "" }}
+  {{ .global_registry }}
+  {{- else }}
+  gcr.io
+  {{- end }}
+
+namespace: prow
+prow_host: ci-bot.kubesphere.io
+hmac_token: |
+  {{ randAlphaNum 20 }}
+storage:
+  insecure: true
+  s3_force_path_style: true
+  minio:
+    root_user: root
+    root_password: abcd@1234
+  qingcloud:
+    region: ""
+    endpoint: ""
+    access_key: ""
+    secret_key: ""
+# github app
+github_appid: ""
+# the private key for github app
+github_cert: ""
+# the generic token for account
+github_token: ""
+cert_manager:
+  ingress_class_name: nginx
+  email: ci-bot@kubesphere.io
