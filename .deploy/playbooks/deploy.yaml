@@ -1,6 +1,0 @@
----
-- hosts:
-    - localhost
-  tags: ["always"]
-  roles:
-    - deploy
