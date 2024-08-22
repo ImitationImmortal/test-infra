@@ -3,11 +3,9 @@
 # Values: List of plugins to run against the repo.
 
 ---
-triggers:
-- repos:
-  - kubesphere
-  - kubesphere-sigs
-  - openelb
+ImitationImmortal/test-infra:
+  plugins:
+    - config-updater
 
 config_updater:
   maps:
@@ -15,29 +13,36 @@ config_updater:
       name: config
     config/prow/plugins.yaml:
       name: plugins
+    config/prow/labels.yaml:
+      name: label-config
+      clusters:
+        default: ["prow-pods"]
     config/jobs/**/*.yaml:
       name: job-config
       gzip: true
 
-slack:
-  mergewarnings:
-  - repos:
-    - kubesphere/kubesphere
-    - kubesphere/console
-    - kubesphere/ks-installer
-    - kubesphere/kubekey
-    channels:
-    - prow
+label:
+  additional_labels:
+    # These labels are used to make Tide merge with a non-default merge method
+    - tide/merge-method-merge
+    - tide/merge-method-rebase
+    - tide/merge-method-squash
 
 lgtm:
 - repos:
-  - kubesphere/kubesphere
-  - kubesphere/console
-  - kubesphere/ks-installer
-  - kubesphere/kubekey
-  - openelb/openelb
-  - openelb/website
+  - ImitationImmortal/test-prow
   store_tree_hash: true
+
+#repo_milestone:
+#  '':
+#    maintainers_id: 4979590
+#    maintainers_team: milestone-maintainers
+
+override:
+  allow_top_level_owners: true
+
+retitle:
+  allow_closed_issues: true
 
 # Lower bounds in number of lines changed; XS is assumed to be zero.
 size:
@@ -47,124 +52,55 @@ size:
   xl:  500
   xxl: 1000
 
-label:
-  additional_labels:
-    # These labels are used to make Tide merge with a non-default merge method
-    - tide/merge-method-merge
-    - tide/merge-method-rebase
-    - tide/merge-method-squash
+#slack:
+#  mergewarnings:
+#  - repos:
+#    - kubesphere/kubesphere
+#    - kubesphere/console
+#    - kubesphere/ks-installer
+#    - kubesphere/kubekey
+#    channels:
+#    - prow
 
-repo_milestone:
-  '':
-    maintainers_id: 4979590
-    maintainers_team: milestone-maintainers
-
-approve:
+triggers:
   - repos:
-      - kubesphere/ks-devops
-    require_self_approval: true
+      - ImitationImmortal/test-prow
 
-plugins:
-  kubesphere:
-    plugins:
+ImitationImmortal/test-prow:
+  plugins:
     - approve
     - assign
-    - cla
-    - golint
-    - help
-    - hold
-    - label
-    - lgtm
-    - pony
-    - cat
-    - lifecycle
-    - retitle
-    - size
-    - skip
-    - slackevents
-    - trigger
-    - verify-owners
-    - dog
-    - wip
-
-  kubesphere-sigs:
-    plugins:
-    - approve
-    - assign
-    - cla
     - golint
     - help
     - hold
     - label
     - lgtm
     - lifecycle
+    - merge-method-comment
+    - milestone
+    - milestoneapplier
+    - milestonestatus
+    - override
+    - project
+    - project-manager
+    - release-note
+    - require-matching-label
     - retitle
     - size
     - skip
     - slackevents
+    - transfer-issue
     - trigger
     - verify-owners
+    - welcome
     - wip
-
-  openelb:
-    plugins:
-    - approve
-    - assign
-    - cla
-    - golint
-    - help
-    - hold
-    - label
-    - lgtm
-    - pony
-    - cat
-    - lifecycle
-    - retitle
-    - size
-    - skip
-    - slackevents
-    - trigger
-    - verify-owners
-    - wip
-
-  kubesphere/kubesphere:
-    plugins:
-    - milestone
-    - milestonestatus
-    - release-note
-    - require-matching-label
-
-  kubesphere/console:
-    plugins:
-    - milestone
-    - milestonestatus
-    - release-note
-    - require-matching-label
-
-  kubesphere/ks-devops:
-    plugins:
-    - milestone
-    - milestonestatus
-    - release-note
-    - require-matching-label
-  kubesphere/test-infra:
-    plugins:
-      - config-updater
 
 external_plugins:
-  kubesphere:
-  - name: cherrypicker
-    events:
-    - issue_comment
-    - pull_request
-  - name: needs-rebase
-    events:
-    - pull_request
-  kubesphere-sigs:
-  - name: cherrypicker
-    events:
-    - issue_comment
-    - pull_request
-  - name: needs-rebase
-    events:
-    - pull_request
+  ImitationImmortal/test-prow:
+    - name: cherrypicker
+      events:
+        - issue_comment
+        - pull_request
+    - name: needs-rebase
+      events:
+        - pull_request
